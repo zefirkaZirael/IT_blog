@@ -8,8 +8,9 @@
 <ul>
   {% for post in posts %}
     <li>
-      <a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a><br>
-      {{ post.content|truncatechars:300 }}
+      <h3>{{ post.title }}</h3>
+      <p>{{ post.context|truncatechars:300 }}</p>
+      <a href="{% url 'post_detail' post.pk %}">Читать полностью</a>
     </li>
   {% endfor %}
 </ul>

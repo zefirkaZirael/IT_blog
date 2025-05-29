@@ -4,12 +4,15 @@ from django.contrib.auth.decorators import login_required
 from .forms import PostForm, CommentForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import logout, login
+from django.http import HttpResponseForbidden
 
 
 def home(request):
     posts = Post.objects.order_by('-create_date')
     return render(request, 'home.html', {'posts': posts})
 
+
+# Post logic
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -42,6 +45,33 @@ def post_create(request):
         form = PostForm()
     return render(request, 'post_form.html', {'form': form})
 
+
+@login_required
+def post_edit(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.user != post.author:
+        return HttpResponseForbidden()
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('post_detail', pk=pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'post_form.html', {'form': form})
+
+@login_required
+def post_delete(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.user != post.author:
+        return HttpResponseForbidden()
+    if request.method == 'POST':
+        post.delete()
+        return redirect('home')
+    return render(request, 'post_confirm_delete.html', {'post': post})
+
+
+# Login/Register
 
 def register(request):
     if request.method == 'POST':
